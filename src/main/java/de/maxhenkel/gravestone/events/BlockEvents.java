@@ -10,7 +10,6 @@ import de.maxhenkel.gravestone.util.BlockPos;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -18,154 +17,154 @@ import net.minecraftforge.event.world.BlockEvent;
 
 public class BlockEvents {
 
-	private boolean removeDeathNote;
-	private boolean onlyOwnersCanBreak;
+    private final boolean removeDeathNote;
+    private final boolean onlyOwnersCanBreak;
 
-	public BlockEvents() {
-		this.removeDeathNote = Config.instance().removeDeathNote;
-		this.onlyOwnersCanBreak = Config.instance().onlyPlayersCanBreak;
-	}
+    public BlockEvents() {
+        this.removeDeathNote = Config.instance().removeDeathNote;
+        this.onlyOwnersCanBreak = Config.instance().onlyPlayersCanBreak;
+    }
 
-	@SubscribeEvent
-	public void onBlockPlace(BlockEvent.PlaceEvent event) {
-		if (event.isCanceled()) {
-			return;
-		}
-		
-		World world = event.world;
+    @SubscribeEvent
+    public void onBlockPlace(BlockEvent.PlaceEvent event) {
+        if (event.isCanceled()) {
+            return;
+        }
 
-		if (world.isRemote) {
-			return;
-		}
+        World world = event.world;
 
-		if (!event.placedBlock.equals(ModBlocks.GRAVESTONE)) {
-			return;
-		}
+        if (world.isRemote) {
+            return;
+        }
 
-		TileEntity te = event.world.getTileEntity(event.x, event.y, event.z);
+        if (!event.placedBlock.equals(ModBlocks.GRAVESTONE)) {
+            return;
+        }
 
-		if (!(te instanceof TileEntityGraveStone)) {
-			return;
-		}
+        TileEntity te = event.world.getTileEntity(event.x, event.y, event.z);
 
-		TileEntityGraveStone graveTileEntity = (TileEntityGraveStone) te;
+        if (!(te instanceof TileEntityGraveStone)) {
+            return;
+        }
 
-		ItemStack stack = event.itemInHand;
+        TileEntityGraveStone graveTileEntity = (TileEntityGraveStone) te;
 
-		if (stack == null || !stack.getItem().equals(ModItems.GRAVESTONE)) {
-			return;
-		}
+        ItemStack stack = event.itemInHand;
 
-		if (!stack.hasDisplayName()) {
-			return;
-		}
+        if (stack == null || !stack.getItem().equals(ModItems.GRAVESTONE)) {
+            return;
+        }
 
-		String name = stack.getDisplayName();
+        if (!stack.hasDisplayName()) {
+            return;
+        }
 
-		if (name == null) {
-			return;
-		}
+        String name = stack.getDisplayName();
 
-		graveTileEntity.setPlayerName(name);
-	}
+        if (name == null) {
+            return;
+        }
 
-	@SubscribeEvent
-	public void onBlockBreak(BlockEvent.BreakEvent event) {
-		if (event.isCanceled()) {
-			return;
-		}
+        graveTileEntity.setPlayerName(name);
+    }
 
-		removeDeathNote(event);
-		checkBreak(event);
-	}
+    @SubscribeEvent
+    public void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (event.isCanceled()) {
+            return;
+        }
 
-	public void removeDeathNote(BlockEvent.BreakEvent event) {
-		if (!removeDeathNote) {
-			return;
-		}
+        removeDeathNote(event);
+        checkBreak(event);
+    }
 
-		World world = event.world;
+    public void removeDeathNote(BlockEvent.BreakEvent event) {
+        if (!removeDeathNote) {
+            return;
+        }
 
-		if (world.isRemote) {
-			return;
-		}
+        World world = event.world;
 
-		if (!event.block.equals(ModBlocks.GRAVESTONE)) {
-			return;
-		}
+        if (world.isRemote) {
+            return;
+        }
 
-		EntityPlayer player = event.getPlayer();
+        if (!event.block.equals(ModBlocks.GRAVESTONE)) {
+            return;
+        }
 
-		InventoryPlayer inv = player.inventory;
+        EntityPlayer player = event.getPlayer();
 
-		BlockPos pos = new BlockPos(event.x, event.y, event.z);
-		int dim = player.dimension;
+        InventoryPlayer inv = player.inventory;
 
-		for (int i=0; i<inv.mainInventory.length; i++) {
-			ItemStack stack = inv.mainInventory[i];
-			if (stack != null && stack.getItem().equals(ModItems.DEATH_INFO)) {
-				if (stack.hasTagCompound() && stack.getTagCompound().hasKey(DeathInfo.KEY_INFO)) {
-					DeathInfo info = DeathInfo.fromNBT(stack.getTagCompound().getCompoundTag(DeathInfo.KEY_INFO));
-					if (info != null && dim == info.getDimension() && pos.equals(info.getDeathLocation())) {
-						inv.setInventorySlotContents(i, null);
-					}
-				}
-			}
-		}
+        BlockPos pos = new BlockPos(event.x, event.y, event.z);
+        int dim = player.dimension;
 
-		for (int i=0; i<inv.armorInventory.length; i++) {
-			ItemStack stack = inv.mainInventory[i];
-			if (stack != null && stack.getItem().equals(ModItems.DEATH_INFO)) {
-				inv.setInventorySlotContents(i, null);
-			}
-		}
-	}
+        for (int i = 0; i < inv.mainInventory.length; i++) {
+            ItemStack stack = inv.mainInventory[i];
+            if (stack != null && stack.getItem().equals(ModItems.DEATH_INFO)) {
+                if (stack.hasTagCompound() && stack.getTagCompound().hasKey(DeathInfo.KEY_INFO)) {
+                    DeathInfo info = DeathInfo.fromNBT(stack.getTagCompound().getCompoundTag(DeathInfo.KEY_INFO));
+                    if (info != null && dim == info.getDimension() && pos.equals(info.getDeathLocation())) {
+                        inv.setInventorySlotContents(i, null);
+                    }
+                }
+            }
+        }
 
-	public void checkBreak(BlockEvent.BreakEvent event) {
-		if (!onlyOwnersCanBreak) {
-			return;
-		}
+        for (int i = 0; i < inv.armorInventory.length; i++) {
+            ItemStack stack = inv.mainInventory[i];
+            if (stack != null && stack.getItem().equals(ModItems.DEATH_INFO)) {
+                inv.setInventorySlotContents(i, null);
+            }
+        }
+    }
 
-		World world = event.world;
+    public void checkBreak(BlockEvent.BreakEvent event) {
+        if (!onlyOwnersCanBreak) {
+            return;
+        }
 
-		if (world.isRemote) {
-			return;
-		}
+        World world = event.world;
 
-		if (!event.block.equals(ModBlocks.GRAVESTONE)) {
-			return;
-		}
+        if (world.isRemote) {
+            return;
+        }
 
-		EntityPlayer player = event.getPlayer();
+        if (!event.block.equals(ModBlocks.GRAVESTONE)) {
+            return;
+        }
 
-		TileEntity te = world.getTileEntity(event.x, event.y, event.z);
+        EntityPlayer player = event.getPlayer();
 
-		if (te == null || !(te instanceof TileEntityGraveStone)) {
-			return;
-		}
+        TileEntity te = world.getTileEntity(event.x, event.y, event.z);
 
-		TileEntityGraveStone tileentity = (TileEntityGraveStone) te;
+        if (te == null || !(te instanceof TileEntityGraveStone)) {
+            return;
+        }
 
-		String uuid = tileentity.getPlayerUUID();
+        TileEntityGraveStone tileentity = (TileEntityGraveStone) te;
 
-		if (uuid == null) {
-			return;
-		}
+        String uuid = tileentity.getPlayerUUID();
 
-		if (player.getUniqueID().toString().equals(uuid)) {
-			return;
-		}
+        if (uuid == null) {
+            return;
+        }
 
-		if (!(player instanceof EntityPlayerMP)) {
-			event.setCanceled(true);
-		}
+        if (player.getUniqueID().toString().equals(uuid)) {
+            return;
+        }
 
-		EntityPlayerMP p = (EntityPlayerMP) player;
-		boolean isOp = p.canCommandSenderUseCommand(p.mcServer.getOpPermissionLevel(), "op");
+        if (!(player instanceof EntityPlayerMP)) {
+            event.setCanceled(true);
+        }
 
-		if (!isOp) {
-			event.setCanceled(true);
-		}
-	}
+        EntityPlayerMP p = (EntityPlayerMP) player;
+        boolean isOp = p.canCommandSenderUseCommand(p.mcServer.getOpPermissionLevel(), "op");
+
+        if (!isOp) {
+            event.setCanceled(true);
+        }
+    }
 
 }
