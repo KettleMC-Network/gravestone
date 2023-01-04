@@ -124,20 +124,29 @@ public class GraveProcessor {
 
 	public BlockPos getGraveStoneLocation() throws NoSpaceException {
 		BlockPos location = new BlockPos(deathPosition.getX(), deathPosition.getY(), deathPosition.getZ());
-		
+
+		int buildLimit = entity.worldObj.getHeight();
+		int step = 1;
+
+		System.out.println(buildLimit);
+
 		if (location.getY() < 1) {
 			location = new BlockPos(location.getX(), 1, location.getZ());
+		} else if (location.getY() >= buildLimit) {
+			location = new BlockPos(location.getX(), buildLimit - 1, location.getZ());
+			step = -1;
 		}
 
-		while (location.getY()<entity.worldObj.getHeight()) {
+		while (location.getY() < buildLimit && location.getY() >= 1) {
+			System.out.println(location.getY());
 			if (isReplaceable(location)) {
 				return location;
 			}
 
-			location.setY(location.getY()+1);
+			location.setY(location.getY() + step);
 		}
 		
-		throw new NoSpaceException("No free Block above death Location");
+		throw new NoSpaceException("No free Block above/below death Location");
 	}
 
 	private boolean isReplaceable(BlockPos pos) {
