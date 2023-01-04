@@ -68,7 +68,7 @@ public class Config {
     }
 
     private boolean checkUpdates() {
-        return getBoolean("check_updates", "gravestone", true,
+        return getBoolean("check_updates", "gravestone", false,
                 "Whether the mod should notify you when an update is available");
     }
 
