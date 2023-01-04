@@ -28,7 +28,7 @@ import net.minecraftforge.common.DimensionManager;
 public class Tools {
 
 	public static String translate(String str, Object... args) {
-		return new ChatComponentTranslation(str, args).getFormattedText();
+		return new ChatComponentTranslation(str, args).getUnformattedTextForChat();
 	}
 
 	public static String dimIDToString(int id) {
