@@ -1,9 +1,8 @@
 package de.maxhenkel.gravestone;
 
-import de.maxhenkel.gravestone.DeathInfo.ItemInfo;
 import de.maxhenkel.gravestone.tileentity.TileEntityGraveStone;
 import de.maxhenkel.gravestone.util.BlockPos;
-import de.maxhenkel.gravestone.util.NoSpaceException;
+import de.maxhenkel.gravestone.util.GraveUtils;
 import de.maxhenkel.gravestone.util.Tools;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
@@ -46,9 +45,9 @@ public class GraveProcessor {
             this.drops.add(ei.getEntityItem());
         }
 
-        try {
-            this.gravePosition = getGraveStoneLocation();
-        } catch (NoSpaceException e) {
+        this.gravePosition = GraveUtils.getGraveStoneLocation(world, deathPosition);
+
+        if (this.gravePosition == null) {
             this.gravePosition = deathPosition;
             Log.i("Grave from '" + entity.getCommandSenderName() + "' cant be created (No space)");
             return false;
@@ -58,7 +57,7 @@ public class GraveProcessor {
             int l = Tools.oppositeSite(entity);
             world.setBlock(gravePosition.getX(), gravePosition.getY(), gravePosition.getZ(), ModBlocks.GRAVESTONE, l, 2);
 
-            if (isReplaceable(gravePosition.down())) {
+            if (GraveUtils.isReplaceable(world, gravePosition.down())) {
                 world.setBlock(gravePosition.down().getX(), gravePosition.down().getY(), gravePosition.down().getZ(), Blocks.dirt);
             }
 
@@ -103,73 +102,13 @@ public class GraveProcessor {
                 }
             }
         } catch (Exception e) {
-            Log.w("Failed to add Ites to gravestone");
+            Log.w("Failed to add Items to gravestone");
         }
     }
 
-    public BlockPos getGraveStoneLocation() throws NoSpaceException {
-        BlockPos location = new BlockPos(deathPosition.getX(), deathPosition.getY(), deathPosition.getZ());
-
-        int buildLimit = entity.worldObj.getHeight();
-        int step = 1;
-
-        System.out.println(buildLimit);
-
-        if (location.getY() < 1) {
-            location = new BlockPos(location.getX(), 1, location.getZ());
-        } else if (location.getY() >= buildLimit) {
-            location = new BlockPos(location.getX(), buildLimit - 1, location.getZ());
-            step = -1;
-        }
-
-        while (location.getY() < buildLimit && location.getY() >= 1) {
-            System.out.println(location.getY());
-            if (isReplaceable(location)) {
-                return location;
-            }
-
-            location.setY(location.getY() + step);
-        }
-
-        throw new NoSpaceException("No free Block above/below death Location");
-    }
-
-    private boolean isReplaceable(BlockPos pos) {
-        Block b = world.getBlock(pos.getX(), pos.getY(), pos.getZ());
-
-        if (b.getUnlocalizedName().equals(Blocks.air.getUnlocalizedName())) {
-            return true;
-        }
-
-        for (Block replaceableBlock : replaceableBlocks) {
-            if (b.getUnlocalizedName().equals(replaceableBlock.getUnlocalizedName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void givePlayerNote() {
-
-        if (!(entity instanceof EntityPlayer)) {
-            return;
-        }
-
-        EntityPlayer player = (EntityPlayer) entity;
-
-        ItemInfo[] items = new ItemInfo[drops.size()];
-        for (int i = 0; i < drops.size(); i++) {
-            ItemStack stack = drops.get(i);
-            if (stack != null) {
-                items[i] = new ItemInfo(Tools.getStringFromItem(stack.getItem()), stack.stackSize, stack.getItemDamage());
-            }
-        }
-
-        DeathInfo info = new DeathInfo(gravePosition, player.dimension, items, player.getDisplayName(), time, player.getUniqueID());
-        ItemStack stack = new ItemStack(ModItems.DEATH_INFO);
-
-        info.addToItemStack(stack);
-        player.inventory.addItemStackToInventory(stack);
+    @Deprecated
+    public boolean givePlayerNote() {
+        return GraveUtils.givePlayerNote(entity, drops, gravePosition, time);
     }
 
     public EntityLivingBase getEntity() {
