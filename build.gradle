@@ -21,9 +21,9 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.0"
+version = "1.7.10-0.7.10.3"
 group= "com.yourname.modid" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "modid"
+archivesBaseName = "gravestones"
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
