@@ -11,3 +11,4 @@ This fork backports features from newer versions to 1.7.10. It is currently used
 - Backport GraveUtils from the latest version
 - Fix code formatting and refactored old code
 - Backported GraveUtils (internal)
+- Backport sneaking feature
